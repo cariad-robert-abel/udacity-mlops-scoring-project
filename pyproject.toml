@@ -29,6 +29,18 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 
+[project.scripts]
+udacity-project-mlops-scoring = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-process = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-ingest = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-train = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-score = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-deploy = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-diagnose = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-report = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-server = "udacity.project.mlops.scoring.__main__:main"
+udacity-project-mlops-scoring-client = "udacity.project.mlops.scoring.__main__:main"
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
