@@ -24,7 +24,8 @@ The configuration defaults to `cfg/practice.json` and we assume code is run from
 Data is ingested from configured `input_folder_path` directory, de-duplicated, and stored to configured
 `output_folder_path` directory.
 
-Run ingestion on its own using any of the following commands:
+Run ingestion either on its own using any of the following commands, or as part of the automation in
+[Step 5: Process Automation](#step-5-process-automation).
 
     udacity-project-mlops-scoring ingest [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
     udacity-project-mlops-scoring-ingest [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
@@ -98,6 +99,14 @@ There is a small test client that tests each of these endpoints:
 
 For both scripts `host` is the hostname or host IP to bind to, `port` is the port to bind to. Obviously, these need to match in order
 to successfully establish a connection.
+
+## Step 5: Process Automation
+
+All steps can be run in succession depending on the presence of new data files or an improved trained model using
+
+    udacity-project-mlops-scoring process [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    udacity-project-mlops-scoring-process [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    python -m udacity.project.mlops.scoring.__main__ [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
 
 ## License
 

@@ -5,6 +5,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 
@@ -20,7 +21,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 
-def merge_multiple_dataframe(indir: Path, outdir: Path):
+def merge_multiple_dataframe(indir: Path, outdir: Path) -> pd.DataFrame:
     """Merge multiple input files into a single output file
 
     Record, merge, and de-duplicate input files.
@@ -28,6 +29,9 @@ def merge_multiple_dataframe(indir: Path, outdir: Path):
     Args:
         indir: Directory containing input files
         outdir: Directory to write output files to.
+    
+    Returns:
+        The merged dataframe.
     """
     ingested_files = []
     result = pd.DataFrame()
@@ -65,16 +69,61 @@ def merge_multiple_dataframe(indir: Path, outdir: Path):
     recordfile.write_text('\n'.join(ingested_files))
     logger.info(f'Wrote record of ingested files to {recordfile}...')
 
+    # return the merged dataframe for immediate re-use
+    return result
 
-def ingestion(config: Configuration):
+
+def _check_for_new_files(indir: Path, outdir: Path) -> bool:
+    """Check for new files in the input directory
+
+    Args:
+        indir: Directory containing input files
+        outdir: Directory containing result files.
+
+    Returns:
+        True if new files are present, else False.
+    """
+    logger.info(f'Checking for updated files to ingest in {indir} against previous output in {outdir}...')
+
+    resultfile = outdir / 'finaldata.csv'
+    recordfile = outdir / 'ingestedfiles.txt'
+
+    if (not resultfile.exists() or not recordfile.exists()):
+        logger.info(f'No existing result or record files found, treating all files as new...')
+        return True
+
+    # read previous records of ingested files
+    ingested_files = set(file.strip() for file in recordfile.read_text().splitlines())
+    present_files = set(str(file.relative_to(indir)) for file in indir.rglob('*.csv'))
+
+    new_files = present_files - ingested_files
+
+    if (new_files):
+        logger.info(f'Found {len(new_files)} new file(s) to ingest...')
+        return True
+
+    logger.info('No new files found to ingest...')
+    return False
+
+
+def ingestion(config: Configuration, check: bool = False) -> Optional[pd.DataFrame]:
     """Perform Data Ingestion
     
     Merge files in input directory to training directory.
 
     Args:
         config: Parsed JSON Configuration
+        check:  Whether to check for new files before or not.
+
+    Returns:
+        New merged dataframe or None, if no new data was present.
     """
-    merge_multiple_dataframe(config.input, config.train)
+    if (not check or _check_for_new_files(config.input, config.train)):
+        result = merge_multiple_dataframe(config.input, config.train)
+        return result
+
+    # default to no new data written
+    return None
 
 
 def main():

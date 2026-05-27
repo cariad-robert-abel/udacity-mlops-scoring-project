@@ -5,7 +5,11 @@ import argparse
 import logging
 import re
 import sys
+import time
+from multiprocessing import Process
 from pathlib import Path
+
+import pandas as pd
 
 from .ingestion import *
 from .training import *
@@ -24,7 +28,52 @@ logger = logging.getLogger(__package__)
 
 
 def process(config: Configuration):
-    raise NotImplementedError('process() is not implemented yet')
+    # run the ingestion step and only continue if there is new data
+    train_df = ingestion(config, check=True)
+
+    if (train_df is None):
+        return
+
+    # train a new model
+    model = train_model(train_df, config.model, random_state=config.random)
+
+    # For some reason, we now score against the new training data and never
+    # change the test dataset. This seems wrong, but it's what the project
+    # rubric requires...
+    # Notice how we have a static test dataset to begin with and never actually
+    # perform any meaningful test/train split anyway...
+    f1_score = score_model(model, train_df, config.model)
+
+    # read the previous deployed score
+    filename = config.deploy / 'latestscore.txt'
+    if (filename.exists() and (prev_f1_score := float(filename.read_text().strip())) >= f1_score):
+        logger.info(f'New model F1 score {f1_score:.6f} did not improve over previous score {prev_f1_score:.6f}')
+        return
+
+    # re-deploy updated model, score, and ingestion record
+    store_model_into_pickle(config.train, config.model, config.deploy)
+
+    # load additional test data
+    logger.info(f'Reading test data from {config.test}...')
+    test_df = pd.read_csv(config.test / 'testdata.csv', low_memory=False)
+
+    # create confusion matrix
+    create_confusion_matrix(model, test_df, config.deploy)
+
+    # create the server as a separate process, so it doesn't block the rest of
+    # the testing code
+    proc = Process(target=server, args=('localhost', 8080, config), name='model-server', daemon=True)
+    proc.start()
+
+    try:
+        # wait 100ms until the server lives
+        time.sleep(0.1)
+        # run the client application
+        client('localhost', 8080, config)
+    finally:
+        # terminate the server process
+        proc.terminate()
+        proc.join(timeout=5)
 
 
 def main():

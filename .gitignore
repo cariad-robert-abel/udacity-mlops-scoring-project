@@ -14,5 +14,6 @@ __pycache__/
 
 # Outputs
 /data/ingesteddata/*
+/data/models/*
 /data/practicemodels/*
 /data/production_deployment/*
