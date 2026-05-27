@@ -26,6 +26,8 @@ class Configuration:
     """Absolute Path to the Model Directory"""
     deploy: Path = field(repr=False, metadata={'key': 'prod_deployment_path'})
     """Absolute Path to the Deployment Directory"""
+    random: int  = field(            metadata={'key': 'random-state'})
+    """Random State for Reproducibility"""
 
     @classmethod
     def from_json(cls, config_path: Path) -> 'Configuration':

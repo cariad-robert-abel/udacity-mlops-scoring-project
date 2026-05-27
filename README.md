@@ -24,7 +24,7 @@ The configuration defaults to `cfg/practice.json` and we assume code is run from
 Data is ingested from configured `input_folder_path` directory, de-duplicated, and stored to configured
 `output_folder_path` directory.
 
-Run ingestion either on its own using any of the following commands:
+Run ingestion on its own using any of the following commands:
 
     udacity-project-mlops-scoring ingest [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
     udacity-project-mlops-scoring-ingest [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]

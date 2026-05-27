@@ -1,4 +1,5 @@
 {
+  "random-state":         3903474587,
   "input_folder_path":    "data/sourcedata",
   "output_folder_path":   "data/ingesteddata",
   "test_data_path":       "data/testdata",
