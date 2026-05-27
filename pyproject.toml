@@ -1,0 +1,34 @@
+[project]
+name = "udacity-project-mlops-scoring"
+description = "Machine Learning Model Scoring and Monitoring: Dynamic Risk Assessment System"
+version = "0.1.0"
+authors = [
+    {name = "Robert ABEL", email = "robert.abel@cariad.technology"},
+]
+maintainers = [
+    {name = "Robert ABEL", email = "robert.abel@cariad.technology"},
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+license-files = [
+    "LICENSE",
+    "LICENSE-Udacity",
+]
+dependencies = [
+    "flask~=3.1",
+    "matplotlib~=3.10",
+    "pandas~=2.3",
+    "requests~=2.34",
+    "scikit-learn~=1.8",
+]
+requires-python = ">=3.13"
+classifiers = [
+    "License :: Other/Proprietary License",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
