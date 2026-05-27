@@ -30,6 +30,31 @@ Run ingestion on its own using any of the following commands:
     udacity-project-mlops-scoring-ingest [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
     python -m udacity.project.mlops.scoring.ingestion [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
 
+## Step 2: Model Training, Scoring, and Deployment
+
+Ingested Data from configured `output_folder_path` is used to train a new model, which will be stored in `output_model_path`.
+Scores will be produced alongside the stored model from test data configured via `test_data_path`.
+Deployment will copy the ingestion record from `output_folder_path` and latest model and scores from `output_model_path` over
+to `prod_deployment_path`.
+
+Run training on its own using any of the following commands:
+
+    udacity-project-mlops-scoring train [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    udacity-project-mlops-scoring-train [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    python -m udacity.project.mlops.scoring.training [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+
+Run scoring on its own using any of the following commands:
+
+    udacity-project-mlops-scoring score [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    udacity-project-mlops-scoring-score [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    python -m udacity.project.mlops.scoring.scoring [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+
+Run deployment on its own using any of the following commands:
+
+    udacity-project-mlops-scoring deploy [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    udacity-project-mlops-scoring-deploy [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    python -m udacity.project.mlops.scoring.deployment [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+
 ## License
 
 Original files Copyright 2012–2026 Udacity, Inc.

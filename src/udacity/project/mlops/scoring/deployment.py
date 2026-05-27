@@ -3,8 +3,9 @@
 
 import argparse
 import logging
-import os
+import shutil
 import sys
+from pathlib import Path
 
 from .utils import add_default_arguments, Configuration
 
@@ -18,16 +19,33 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 
-#################### Function for deployment
-def store_model_into_pickle():
-    # Copy the latest pickle file, the latestscore.txt value,
-    # and the ingestfiles.txt file into the deployment directory
-    pass
+def store_model_into_pickle(indir: Path, modeldir: Path, outdir: Path):
+    """Deploy Ingestion Record and Model to Deployment Directory
+
+    Args:
+        indir:    Input directory where the Ingestion Record and Model are stored
+        modeldir: Directory where the trained model is stored
+        outdir:   Output directory where the Ingestion Record and Model will be deployed
+    """
+
+    logger.info(f'Deploying Ingestion Record and Model from {indir} and {modeldir} to {outdir}...')
+
+    # create output directory (if not present)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    # high-level copy operation on file paths
+    # notice that Path.copy is only available from Python 3.14
+    for directory, filename in ((indir, 'ingestedfiles.txt'), (modeldir, 'latestscore.txt'), (modeldir, 'trainedmodel.pkl')):
+        shutil.copy2(str(directory / filename), str(outdir / filename))
 
 
 def deployment(config: Configuration):
-    raise NotImplementedError('deployment() is not implemented yet')
-    store_model_into_pickle()
+    """Deploy the trained Prediction Model
+
+    Args:
+        config: Parsed JSON Configuration
+    """
+    store_model_into_pickle(config.train, config.model, config.deploy)
 
 
 def main():

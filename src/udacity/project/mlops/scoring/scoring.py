@@ -5,12 +5,16 @@ import argparse
 import logging
 import pickle
 import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from sklearn.metrics import f1_score
-from sklearn.linear_model import LogisticRegression
 
 from .utils import add_default_arguments, Configuration
+
+if TYPE_CHECKING:
+    from sklearn.linear_model import LogisticRegression
 
 __all__ = (
     'score_model',
@@ -22,17 +26,54 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 
-################# Function for model scoring
-def score_model():
-    # This function should take a trained model, load test data,  and
-    # calculate an F1 score for the model relative to the test data.
-    # It should write the result to the latestscore.txt file
-    pass
+def score_model(model: 'LogisticRegression', df: pd.DataFrame, outdir: Path) -> float:
+    """Calculate the F1 score of a trained model on a given dataset.
+
+    Args:
+        model:  The trained Logistic Regression model.
+        df:     The test dataframe.
+        outdir: Directory to write the model score to.
+
+    Returns:
+        The F1 score of the model on the test data.
+    """
+    # extract features and label
+    X = df.select_dtypes(include='number').drop('exited', axis=1)
+    y = df['exited']
+    logger.info(f'Scoring model on {len(df)} records with {X.shape[1]} features...')
+
+    # run inference
+    y_pred = model.predict(X)
+
+    # calculate F1 score
+    f1 = f1_score(y, y_pred)
+    logger.info(f'Model F1 score: {f1:.6f}...')
+
+    filename = outdir / 'latestscore.txt'
+    logger.info(f'Writing current model score to {filename}...')
+    filename.write_text(f'{f1}')
+
+    # return the score for immediate re-use
+    return f1
 
 
 def scoring(config: Configuration):
-    raise NotImplementedError('scoring() is not implemented yet')
-    score_model()
+    """Score a pre-trained Prediction Model
+
+    Calculate the F1 score of the pre-trained model against the test dataset.
+    The F1 score is written to the output directory as 'latestscore.txt'.
+
+    Args:
+        config: Parsed JSON Configuration
+    """
+    logger.info(f'Reading test data from {config.test}...')
+    df = pd.read_csv(config.test / 'testdata.csv', low_memory=False)
+    logger.info(f'Loading pre-trained model from {config.model}...')
+    with open(config.model / 'trainedmodel.pkl', 'rb') as f:
+        model = pickle.load(f)
+
+    # actuall score model
+    score_model(model, df, config.model)
 
 
 def main():
