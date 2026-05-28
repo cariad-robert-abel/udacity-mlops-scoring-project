@@ -55,6 +55,18 @@ Run deployment on its own using any of the following commands:
     udacity-project-mlops-scoring-deploy [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
     python -m udacity.project.mlops.scoring.deployment [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
 
+## Step 3: Model and Data Diagnostics
+
+Ingested Data from configured `output_folder_path` is used to run prediction on the deployed pre-trained model in
+`prod_deployment_path`. Additionally, some statistics (mean, median, std) and execution times of data ingestion and
+re-training are computed. Finally, `pip` is used to check whether Python dependencies are up-to-date.
+
+Run training on its own using any of the following commands:
+
+    udacity-project-mlops-scoring diagnose [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    udacity-project-mlops-scoring-diagnose [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    python -m udacity.project.mlops.scoring.diagnostics [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+
 ## License
 
 Original files Copyright 2012–2026 Udacity, Inc.
