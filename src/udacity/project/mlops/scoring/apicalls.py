@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import json
 import logging
 import sys
 
@@ -18,22 +19,35 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 def client(host: str, port: int, config: Configuration):
-    raise NotImplementedError('client() is not implemented yet')
-    # Specify a URL that resolves to your workspace
-    URL = "http://127.0.0.1/"
+    """Test the Server API Endpoints
+    
+    Args:
+        host:   host address of the server
+        port:   port number of the server
+        config: Parsed JSON Configuration
+    """
 
+    url = f"http://{host}:{port}"
 
+    logger.info(f'Testing API endpoints at {url}...')
 
     # Call each API endpoint and store the responses
-    response1 = None # Put an API call here
-    response2 = None # Put an API call here
-    response3 = None # Put an API call here
-    response4 = None # Put an API call here
+    response1 = requests.post(f'{url}/prediction', params={'filename': 'data/testdata/testdata.csv'})
+    response2 = requests.get(f'{url}/scoring')
+    response3 = requests.get(f'{url}/summarystats')
+    response4 = requests.get(f'{url}/diagnostics')
 
-    # Combine all API responses
-    responses = None #combine reponses here
+    responses = {
+        **response1.json(),
+        **response2.json(),
+        **response3.json(),
+        **response4.json(),
+    }
 
-    # Write the responses to your workspace
+    filename = config.deploy / 'apireturns.txt'
+    logger.info(f'Writing API responses to {filename}...')
+
+    filename.write_text(json.dumps(responses, indent=2))
 
 
 def main():

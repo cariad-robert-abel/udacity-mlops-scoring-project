@@ -67,6 +67,38 @@ Run training on its own using any of the following commands:
     udacity-project-mlops-scoring-diagnose [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
     python -m udacity.project.mlops.scoring.diagnostics [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
 
+## Step 4: Model Reporting
+
+Model reporting computes a [Confusion Matrix](#confusion-matrix) for the deployed pre-trained model in `prod_deployment_path`.
+A [REST-ful API](#rest-ful-api) provided by server can output metrics from [Step 3: Model and Data Diagnostics](#step-3-model-and-data-diagnostics), which can be tested by a client application.
+
+### Confusion Matrix
+
+Test data from configured `test_data_path` is used to run prediction on the deployed pre-trained model in
+`prod_deployment_path`.
+
+    udacity-project-mlops-scoring report [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    udacity-project-mlops-scoring-report [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+    python -m udacity.project.mlops.scoring.reporting [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG]
+
+### REST-ful API
+
+The REST-ful API is served by a Flask server application with endpoints `/prediction?filename=<filename>`, `/scoring`,
+`/summarystats`, and `/diagnostics`:
+
+    udacity-project-mlops-scoring server [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG] [--host HOST] [--port PORT]
+    udacity-project-mlops-scoring-server [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG] [--host HOST] [--port PORT]
+    python -m udacity.project.mlops.scoring.app [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG] [--host HOST] [--port PORT]
+
+There is a small test client that tests each of these endpoints:
+
+    udacity-project-mlops-scoring client [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG] [--host HOST] [--port PORT]
+    udacity-project-mlops-scoring-client [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG] [--host HOST] [--port PORT]
+    python -m udacity.project.mlops.scoring.apicalls [-h] [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--config CONFIG] [--host HOST] [--port PORT]
+
+For both scripts `host` is the hostname or host IP to bind to, `port` is the port to bind to. Obviously, these need to match in order
+to successfully establish a connection.
+
 ## License
 
 Original files Copyright 2012–2026 Udacity, Inc.

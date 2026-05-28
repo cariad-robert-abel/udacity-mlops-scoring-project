@@ -5,14 +5,19 @@ import argparse
 import logging
 import pickle
 import sys
+import tempfile
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
-
 from flask import Flask, request
 
-from .diagnostics import model_predictions, dataframe_summary, execution_time
+from .diagnostics import model_predictions, dataframe_summary, dataframe_missing, execution_time, outdated_packages_list
 from .scoring import score_model
 from .utils import add_default_arguments, add_wsgi_subcommand, Configuration
+
+if TYPE_CHECKING:
+    from sklearn.linear_model import LogisticRegression
 
 __all__ = (
     'server',
@@ -23,38 +28,104 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 
-###################### Set up variables for use in our script
-app = Flask(__name__)
-app.secret_key = '1652d576-484a-49fd-913a-6879acfa6ba4'
+class ModelReportingApp(Flask):
 
-####################### Prediction Endpoint
-@app.route("/prediction", methods=['POST','OPTIONS'])
-def predict():
-    # Call the prediction function you created in Step 3
-    return # Add return value for prediction outputs
+    SECRET_KEY = '1652d576-484a-49fd-913a-6879acfa6ba4'
 
-####################### Scoring Endpoint
-@app.route("/scoring", methods=['GET','OPTIONS'])
-def scoring():
-    # Check the score of the deployed model
-    return # Add return value (a single F1 score number)
+    def __init__(self, model: 'LogisticRegression', config: Configuration,
+                 test_df: pd.DataFrame,
+                 train_df: pd.DataFrame):
+        """Initialize the Model Reporting App
 
-####################### Summary Statistics Endpoint
-@app.route("/summarystats", methods=['GET','OPTIONS'])
-def summarystats():
-    # Check means, medians, and modes for each column
-    return # Return a list of all calculated summary statistics
+        Args:
+            model:    pre-trained deployed model
+            config:   parsed JSON configuration
+            test_df:  test dataframe
+            train_df: train dataframe
+        """
+        super().__init__('Model Reporting App')
+        self._model = model
+        self._config = config
+        self._test_df = test_df
+        self._train_df = train_df
+    
+        # add the necessary routes
+        self.route("/prediction", methods=['GET', 'POST'])(self.predict)
+        self.route("/scoring", methods=['GET'])(self.scoring)
+        self.route("/summarystats", methods=['GET'])(self.summarystats)
+        self.route("/diagnostics", methods=['GET'])(self.diagnostics)
+    
+    def predict(self):
+        """Make Predictions using the Deployed Model"""
+        
+        try:
+            filename = request.args['filename']
+            filepath = (Path('.') / filename).absolute()
 
-####################### Diagnostics Endpoint
-@app.route("/diagnostics", methods=['GET','OPTIONS'])
-def diagnostics():
-    # Check timing and percent NA values
-    return # Add return value for all diagnostics
+            # we like really shouldn't be doing this in production code
+            if (not filepath.exists() or not filepath.is_file()):
+                return f'File "{filename}" does not exist', 404
+
+            logger.info(f'Reading data from {filepath}...')
+
+            # read the data
+            df = pd.read_csv(filepath)
+
+            # return predictions from deployed model
+            preds = model_predictions(self._model, df)
+            return {'predictions': preds}
+
+        except KeyError:
+            return 'Missing "filename" query parameter', 422
+
+    def scoring(self):
+        """Return the F1 Score of the Deployed Model on Test Data"""
+        # return the score of the deployed model
+        with tempfile.TemporaryDirectory() as tmpdir:
+            score = score_model(self._model, self._test_df, Path(tmpdir))
+        return {'f1-score': score}
+
+    def summarystats(self):
+        """Return the Summary Statistics of the Train Data"""
+
+        stats = dataframe_summary(self._train_df)
+        return {'summary-stats': stats}
+
+    def diagnostics(self):
+        """Report Execution Time, Missing Data, and Dependency Checks"""
+
+        # compute result
+        result = {
+            'execution-times': execution_time(self._config),
+            'missing-data': dataframe_missing(self._train_df),
+            'package-list': outdated_packages_list()
+        }
+
+        # serve result
+        return result
 
 
 def server(host: str, port: int, config: Configuration):
-    raise NotImplementedError('server() is not implemented yet')
-    app.run(host=host, port=port, debug=True, threaded=True)
+    """Serve the Deployed Pre-Trained Model REST-ful API
+
+    Args:
+        host:   host address to serve the app
+        port:   port number to serve the app
+        config: Parsed JSON Configuration
+    """
+    logger.info(f'Reading test data from {config.test}...')
+    test_df = pd.read_csv(config.test / 'testdata.csv', low_memory=False)
+    logger.info(f'Reading train data from {config.train}...')
+    train_df = pd.read_csv(config.train / 'finaldata.csv', low_memory=False)
+    logger.info(f'Loading pre-trained model from {config.deploy}...')
+    with open(config.deploy / 'trainedmodel.pkl', 'rb') as f:
+        model = pickle.load(f)
+
+    # instantiate the app
+    app = ModelReportingApp(model, config, test_df, train_df)
+
+    # run the app until CTRL+C is pressed
+    app.run(host=host, port=port, threaded=True)
 
 
 def main():
